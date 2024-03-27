@@ -3,8 +3,6 @@ import NextAuth, { AuthOptions } from 'next-auth';
 import CredentialsProvider from 'next-auth/providers/credentials';
 import GithubProvider from 'next-auth/providers/github';
 import GoogleProvider from 'next-auth/providers/google';
-import LinkedInProvider from 'next-auth/providers/linkedin';
-import TwitterProvider from 'next-auth/providers/twitter';
 import { PrismaAdapter } from '@next-auth/prisma-adapter';
 
 import prisma from '@/app/libs/prismadb';
@@ -20,24 +18,17 @@ export const authOptions: AuthOptions = {
 			clientId: process.env.GOOGLE_CLIENT_ID as string,
 			clientSecret: process.env.GOOGLE_CLIENT_SECRET as string,
 		}),
-		LinkedInProvider({
-			clientId: process.env.LINKEDIN_CLIENT_ID as string,
-			clientSecret: process.env.LINKEDIN_CLIENT_SECRET as string,
-		}),
-		TwitterProvider({
-			clientId: process.env.TWITTER_CLIENT_ID as string,
-			clientSecret: process.env.TWITTER_CLIENT_SECRET as string,
-		}),
 		CredentialsProvider({
 			name: 'credentials',
 			credentials: {
-				email: { labe: 'email', type: 'text' },
+				email: { label: 'email', type: 'text' },
 				password: { label: 'password', type: 'password' },
 			},
 			async authorize(credentials) {
 				if (!credentials?.email || !credentials?.password) {
-					throw new Error('Invalid Credentials!');
+					throw new Error('Invalid credentials');
 				}
+
 				const user = await prisma.user.findUnique({
 					where: {
 						email: credentials.email,
@@ -45,7 +36,7 @@ export const authOptions: AuthOptions = {
 				});
 
 				if (!user || !user?.hashedPassword) {
-					throw new Error('Invalid credentials!');
+					throw new Error('Invalid credentials');
 				}
 
 				const isCorrectPassword = await bcrypt.compare(
@@ -54,7 +45,7 @@ export const authOptions: AuthOptions = {
 				);
 
 				if (!isCorrectPassword) {
-					throw new Error('Invalid Credentials!');
+					throw new Error('Invalid credentials');
 				}
 
 				return user;
